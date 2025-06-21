@@ -1,0 +1,42 @@
+Sub Tiff_to_folder()
+    Dim expTIF As ExportFilter
+    Dim docName As String
+    Dim pageName As String
+    Dim tifFile As String
+    Dim exportFolder As String
+    Dim shellApp As Object
+
+    ' Check if a document is open
+    If ActiveDocument Is Nothing Then
+        MsgBox "No document open!", vbExclamation
+        Exit Sub
+    End If
+
+    ' Check if any objects are selected
+    If ActiveSelection.Shapes.Count = 0 Then
+        MsgBox "No objects selected!", vbExclamation
+        Exit Sub
+    End If
+
+    ' Ask user to choose export folder
+    Set shellApp = CreateObject("Shell.Application").BrowseForFolder(0, "Select a folder to export TIFF file to:", 0)
+    If shellApp Is Nothing Then Exit Sub ' User canceled
+
+    exportFolder = shellApp.Items().Item().Path
+
+    ' Get clean document name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ' Build file name: DocumentName_PageX.tif
+    pageName = "Page" & ActivePage.Index
+    tifFile = exportFolder & "\" & docName & "_" & pageName & ".tif"
+
+    ' Export manually selected objects to TIFF (no compression property set)
+    Set expTIF = ActiveDocument.ExportBitmap(tifFile, cdrTIFF, cdrSelection, cdrRGBColorImage)
+    expTIF.Finish
+
+    MsgBox "TIFF exported to: " & tifFile, vbInformation
+End Sub

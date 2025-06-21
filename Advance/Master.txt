@@ -1,0 +1,257 @@
+Sub JPG_Export_Selected_Only()
+    Dim expFilter As ExportFilter
+    Dim docName As String
+    Dim pageName As String
+    Dim fullFileName As String
+    Dim exportFolder As String
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim sizeStr As String
+
+    ' Ask user to pick export folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then
+        MsgBox "Export cancelled.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Check document and selection
+    If ActiveDocument Is Nothing Then
+        MsgBox "No document open!", vbExclamation
+        Exit Sub
+    End If
+    If ActiveSelection.Shapes.Count = 0 Then
+        MsgBox "No objects selected!", vbExclamation
+        Exit Sub
+    End If
+
+    ' Clean document name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ' Get selection info
+    Set sr = ActiveSelectionRange
+    widthIn = Round(sr.SizeWidth, 2)
+    heightIn = Round(sr.SizeHeight, 2)
+    sizeStr = widthIn & "x" & heightIn
+
+    ' Align selection to center (optional)
+    sr.AlignAndDistribute 3, 3, 2, 0, False, 2
+
+    ' File name
+    pageName = "Page" & ActivePage.Index
+    fullFileName = exportFolder & "\" & sizeStr & "_" & docName & "_" & pageName & ".jpg"
+
+    ' Export to JPG
+    Set expFilter = ActiveDocument.ExportBitmap(fullFileName, cdrJPEG, cdrSelection, cdrRGBColorImage)
+    With expFilter
+        .Compression = 80
+        .Smoothing = 0
+        .Optimized = True
+        .Progressive = False
+        .Finish
+    End With
+
+    MsgBox "JPG exported to: " & fullFileName, vbInformation
+End Sub
+
+Sub TIFF_Export_Selected_Only()
+    Dim expTIF As ExportFilter
+    Dim docName As String
+    Dim pageName As String
+    Dim tifFile As String
+    Dim exportFolder As String
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim sizeStr As String
+
+    ' Ask user to pick export folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then
+        MsgBox "Export cancelled.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Check document and selection
+    If ActiveDocument Is Nothing Then
+        MsgBox "No document open!", vbExclamation
+        Exit Sub
+    End If
+    If ActiveSelection.Shapes.Count = 0 Then
+        MsgBox "No objects selected!", vbExclamation
+        Exit Sub
+    End If
+
+    ' Clean document name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ' Get selection info
+    Set sr = ActiveSelectionRange
+    widthIn = Round(sr.SizeWidth, 2)
+    heightIn = Round(sr.SizeHeight, 2)
+    sizeStr = widthIn & "x" & heightIn
+
+    ' Align selection to center (optional)
+    sr.AlignAndDistribute 3, 3, 2, 0, False, 2
+
+    ' File name
+    pageName = "Page" & ActivePage.Index
+    tifFile = exportFolder & "\" & sizeStr & "_" & docName & "_" & pageName & ".tif"
+
+    ' Export to TIFF
+    Set expTIF = ActiveDocument.ExportBitmap(tifFile, cdrTIFF, cdrSelection, cdrRGBColorImage)
+    expTIF.Finish
+
+    MsgBox "TIFF exported to: " & tifFile, vbInformation
+End Sub
+
+
+Sub JPG_Orginal_Export_All_Pages_in_One_Click()
+
+    Dim expFilter As ExportFilter
+    Dim docName As String
+    Dim pageName As String
+    Dim fullFileName As String
+    Dim exportFolder As String
+    Dim pg As Page
+    Dim sr As ShapeRange
+    Dim i As Integer
+    Dim widthIn As Double, heightIn As Double
+    Dim sizeStr As String
+
+    ' Use CorelDRAW native folder picker
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then
+        MsgBox "Export cancelled.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Ensure a document is open
+    If ActiveDocument Is Nothing Then
+        MsgBox "No document open!", vbExclamation
+        Exit Sub
+    End If
+
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ActiveDocument.ReferencePoint = cdrCenter
+
+    For i = 1 To ActiveDocument.Pages.Count
+        Set pg = ActiveDocument.Pages(i)
+        pg.Activate
+
+        ' Select all shapes on the current page
+        pg.Shapes.All.CreateSelection
+        If pg.Shapes.Count = 0 Then GoTo SkipPage
+
+        Set sr = ActiveSelectionRange
+
+        ' Get width and height in inches (CorelDRAW units are inches by default)
+        widthIn = Round(sr.SizeWidth, 2)
+        heightIn = Round(sr.SizeHeight, 2)
+        sizeStr = widthIn & "x" & heightIn
+
+        ' Align to center
+        sr.AlignAndDistribute 3, 3, 2, 0, False, 2
+
+        ' Filename
+        pageName = "Page" & pg.Index
+        fullFileName = exportFolder & "\" & sizeStr & "_" & docName & "_" & pageName & ".jpg"
+
+        ' Export to JPG
+        Set expFilter = ActiveDocument.ExportBitmap(fullFileName, cdrJPEG, cdrSelection, cdrRGBColorImage)
+        With expFilter
+            .Compression = 0
+            .Smoothing = 0
+            .Optimized = True
+            .Progressive = False
+            .Finish
+        End With
+
+SkipPage:
+    Next i
+
+    MsgBox "All pages exported with size in inches in filename.", vbInformation
+
+End Sub
+
+
+Sub TIFF_Orginal_Export_All_Pages_in_One_Click()
+
+    Dim expTIF As ExportFilter
+    Dim docName As String
+    Dim pageName As String
+    Dim tifFile As String
+    Dim exportFolder As String
+    Dim pg As Page
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim sizeStr As String
+    Dim i As Integer
+
+    ' Prompt user to pick folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then
+        MsgBox "Export cancelled.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Check document
+    If ActiveDocument Is Nothing Then
+        MsgBox "No document open!", vbExclamation
+        Exit Sub
+    End If
+
+    ' Clean document name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ' Set alignment reference
+    ActiveDocument.ReferencePoint = cdrCenter
+
+    ' Loop through all pages
+    For i = 1 To ActiveDocument.Pages.Count
+        Set pg = ActiveDocument.Pages(i)
+        pg.Activate
+
+        ' Select all objects on the page
+        pg.Shapes.All.CreateSelection
+        If pg.Shapes.Count = 0 Then GoTo SkipPage
+
+        Set sr = ActiveSelectionRange
+
+        ' Get size in inches (CorelDRAW units are inches)
+        widthIn = Round(sr.SizeWidth, 2)
+        heightIn = Round(sr.SizeHeight, 2)
+        sizeStr = widthIn & "x" & heightIn
+
+        ' Center align
+        sr.AlignAndDistribute 3, 3, 2, 0, False, 2
+
+        ' Build file name
+        pageName = "Page" & pg.Index
+        tifFile = exportFolder & "\" & sizeStr & "_" & docName & "_" & pageName & ".tif"
+
+        ' Export to TIFF
+        Set expTIF = ActiveDocument.ExportBitmap(tifFile, cdrTIFF, cdrSelection, cdrRGBColorImage)
+        expTIF.Finish
+
+SkipPage:
+    Next i
+
+    MsgBox "All pages exported as TIFF with size in inches.", vbInformation
+
+End Sub
+
+
+
