@@ -1,0 +1,455 @@
+Sub Export_TIFF_All_Pages_100_dpi()
+    Dim unitChoice As String
+    Dim expTIF As ExportFilter
+    Dim exportFolder As String
+    Dim pg As Page
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim widthStr As String, heightStr As String
+    Dim docName As String, pageName As String, tifFile As String
+    Dim i As Integer
+    Dim unitsLabel As String
+
+    ' Ask user: Inches or Feet
+    unitChoice = MsgBox("Do you want to export using Feet dimensions?" & vbCrLf & "(Click 'No' for Inches)", vbYesNo + vbQuestion, "Select Unit")
+    If unitChoice = vbYes Then
+        unitsLabel = "ft"
+    Else
+        unitsLabel = "in"
+    End If
+
+    ' Choose folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then Exit Sub
+
+    ' Clean doc name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ActiveDocument.ReferencePoint = cdrCenter
+
+    ' Loop all pages
+    For i = 1 To ActiveDocument.Pages.Count
+        Set pg = ActiveDocument.Pages(i)
+        pg.Activate
+
+        pg.Shapes.All.CreateSelection
+        If pg.Shapes.Count = 0 Then GoTo SkipPage
+
+        Set sr = ActiveSelectionRange
+        widthIn = sr.SizeWidth
+        heightIn = sr.SizeHeight
+
+        If unitsLabel = "ft" Then
+            widthStr = Round(widthIn / 12, 2)
+            heightStr = Round(heightIn / 12, 2)
+        Else
+            widthStr = Round(widthIn, 2)
+            heightStr = Round(heightIn, 2)
+        End If
+
+        pageName = Replace(pg.Name, " ", "_") ' Clean page name
+        tifFile = exportFolder & "\" & widthStr & "x" & heightStr & unitsLabel & "_" & pageName & "_" & docName & "_Page" & i & ".tif"
+
+        Set expTIF = ActiveDocument.ExportBitmap(tifFile, cdrTIFF, cdrSelection, cdrCMYKColorImage, , , 100, 100, cdrNormalAntiAliasing, False, False, True, False, cdrCompressionLZW)
+        expTIF.Finish
+
+SkipPage:
+    Next i
+
+    MsgBox "TIFF Export Complete!", vbInformation
+End Sub
+
+Sub SaveAsX7()
+Dim Path As String
+Dim Name As String
+Path = ActiveDocument.FilePath
+Name = ActiveDocument.FileName
+
+Dim SaveOptions As StructSaveAsOptions
+Set SaveOptions = CreateStructSaveAsOptions
+With SaveOptions
+.EmbedVBAProject = True
+.Filter = cdrCDR
+.IncludeCMXData = False
+.Range = cdrAllPages
+.EmbedICCProfile = False
+.Version = cdrVersion17
+End With
+
+ActiveDocument.SaveAs Path + "\" + Name, SaveOptions
+End Sub
+
+
+
+
+
+Sub Export_JPG_All_Pages_72_dpi()
+    Dim unitChoice As String
+    Dim expJPG As ExportFilter
+    Dim exportFolder As String
+    Dim pg As Page
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim widthStr As String, heightStr As String
+    Dim docName As String, pageName As String, jpgFile As String
+    Dim i As Integer
+    Dim unitsLabel As String
+
+    ' Ask user: Inches or Feet
+    unitChoice = MsgBox("Do you want to export using Feet dimensions?" & vbCrLf & "(Click 'No' for Inches)", vbYesNo + vbQuestion, "Select Unit")
+    If unitChoice = vbYes Then
+        unitsLabel = "ft"
+    Else
+        unitsLabel = "in"
+    End If
+
+    ' Choose folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then Exit Sub
+
+    ' Clean doc name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ActiveDocument.ReferencePoint = cdrCenter
+
+    ' Loop all pages
+    For i = 1 To ActiveDocument.Pages.Count
+        Set pg = ActiveDocument.Pages(i)
+        pg.Activate
+
+        pg.Shapes.All.CreateSelection
+        If pg.Shapes.Count = 0 Then GoTo SkipPage
+
+        Set sr = ActiveSelectionRange
+        widthIn = sr.SizeWidth
+        heightIn = sr.SizeHeight
+
+        If unitsLabel = "ft" Then
+            widthStr = Round(widthIn / 12, 2)
+            heightStr = Round(heightIn / 12, 2)
+        Else
+            widthStr = Round(widthIn, 2)
+            heightStr = Round(heightIn, 2)
+        End If
+
+        pageName = Replace(pg.Name, " ", "_") ' Clean page name
+        jpgFile = exportFolder & "\" & widthStr & "x" & heightStr & unitsLabel & "_" & pageName & "_" & docName & "_Page" & i & ".jpg"
+
+        Set expJPG = ActiveDocument.ExportBitmap(jpgFile, cdrJPEG, cdrSelection, cdrCMYKColorImage, , , 72, 72, cdrNormalAntiAliasing, False, False, True)
+        expJPG.Finish
+
+SkipPage:
+    Next i
+
+    MsgBox "JPG Export Complete!", vbInformation
+End Sub
+
+Sub Export_JPG_All_Pages_300_dpi()
+    Dim unitChoice As String
+    Dim expJPG As ExportFilter
+    Dim exportFolder As String
+    Dim pg As Page
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim widthStr As String, heightStr As String
+    Dim docName As String, pageName As String, jpgFile As String
+    Dim i As Integer
+    Dim unitsLabel As String
+
+    ' Ask user: Inches or Feet
+    unitChoice = MsgBox("Do you want to export using Feet dimensions?" & vbCrLf & "(Click 'No' for Inches)", vbYesNo + vbQuestion, "Select Unit")
+    If unitChoice = vbYes Then
+        unitsLabel = "ft"
+    Else
+        unitsLabel = "in"
+    End If
+
+    ' Choose folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then Exit Sub
+
+    ' Clean doc name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ActiveDocument.ReferencePoint = cdrCenter
+
+    ' Loop all pages
+    For i = 1 To ActiveDocument.Pages.Count
+        Set pg = ActiveDocument.Pages(i)
+        pg.Activate
+
+        pg.Shapes.All.CreateSelection
+        If pg.Shapes.Count = 0 Then GoTo SkipPage
+
+        Set sr = ActiveSelectionRange
+        widthIn = sr.SizeWidth
+        heightIn = sr.SizeHeight
+
+        If unitsLabel = "ft" Then
+            widthStr = Round(widthIn / 12, 2)
+            heightStr = Round(heightIn / 12, 2)
+        Else
+            widthStr = Round(widthIn, 2)
+            heightStr = Round(heightIn, 2)
+        End If
+
+        pageName = Replace(pg.Name, " ", "_") ' Clean page name
+        jpgFile = exportFolder & "\" & widthStr & "x" & heightStr & unitsLabel & "_" & pageName & "_" & docName & "_Page" & i & ".jpg"
+
+        Set expJPG = ActiveDocument.ExportBitmap(jpgFile, cdrJPEG, cdrSelection, cdrCMYKColorImage, , , 300, 300, cdrNormalAntiAliasing, False, False, True)
+        expJPG.Finish
+
+SkipPage:
+    Next i
+
+    MsgBox "JPG Export Complete!", vbInformation
+End Sub
+
+Sub Export_TIFF_All_Pages_12x()
+    Dim expTIF As ExportFilter
+    Dim exportFolder As String
+    Dim pg As Page
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim widthStr As String, heightStr As String
+    Dim docName As String, pageName As String, tifFile As String
+    Dim i As Integer
+    Dim dpi As Long: dpi = 100
+    Dim scaleFactor As Double: scaleFactor = 12
+
+    ' Choose export folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then Exit Sub
+
+    ' Clean document name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ActiveDocument.ReferencePoint = cdrCenter
+
+    For i = 1 To ActiveDocument.Pages.Count
+        Set pg = ActiveDocument.Pages(i)
+        pg.Activate
+
+        pg.Shapes.All.CreateSelection
+        If pg.Shapes.Count = 0 Then GoTo SkipPage
+
+        Set sr = ActiveSelectionRange
+        widthIn = sr.SizeWidth
+        heightIn = sr.SizeHeight
+
+        ' Size strings in feet (assuming inches design to feet)
+        widthStr = Round(widthIn, 2)
+        heightStr = Round(heightIn, 2)
+
+        pageName = Replace(pg.Name, " ", "_")
+        tifFile = exportFolder & "\" & widthStr & "x" & heightStr & "ft_" & pageName & "_" & docName & "_Page" & i & ".tif"
+
+        ' Calculate export pixel dimensions = inches * dpi * scale factor
+        Dim pixelWidth As Long
+        Dim pixelHeight As Long
+
+        pixelWidth = CLng(widthIn * dpi * scaleFactor)
+        pixelHeight = CLng(heightIn * dpi * scaleFactor)
+
+        Set expTIF = ActiveDocument.ExportBitmap(tifFile, cdrTIFF, cdrSelection, cdrCMYKColorImage, pixelWidth, pixelHeight, dpi, dpi, cdrNormalAntiAliasing, False, False, True, False, cdrCompressionLZW)
+        expTIF.Finish
+
+SkipPage:
+    Next i
+
+    MsgBox "TIFF Export at 12× scale Complete!", vbInformation
+End Sub
+
+
+
+
+
+
+Sub Export_Selected_As_TIFF_100_dpi()
+    Dim unitChoice As String
+    Dim exportFolder As String
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim widthStr As String, heightStr As String
+    Dim docName As String, pageName As String, tifFile As String
+
+    ' Check selection
+    If ActiveSelection.Shapes.Count = 0 Then
+        MsgBox "No objects selected!", vbExclamation
+        Exit Sub
+    End If
+
+    ' Ask user: Inches or Feet
+    unitChoice = MsgBox("Export using FEET dimensions? Click No for INCHES.", vbYesNo + vbQuestion, "Select Unit")
+    Dim unitsLabel As String
+    If unitChoice = vbYes Then
+        unitsLabel = "ft"
+    Else
+        unitsLabel = "in"
+    End If
+
+    ' Choose folder
+    exportFolder = CorelScriptTools.GetFolder("Select Folder to Export TIFF")
+    If exportFolder = "" Then Exit Sub
+
+    ' Clean document name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    Set sr = ActiveSelectionRange
+    widthIn = sr.SizeWidth
+    heightIn = sr.SizeHeight
+
+    If unitsLabel = "ft" Then
+        widthStr = Round(widthIn / 12, 2)
+        heightStr = Round(heightIn / 12, 2)
+    Else
+        widthStr = Round(widthIn, 2)
+        heightStr = Round(heightIn, 2)
+    End If
+
+    pageName = Replace(ActivePage.Name, " ", "_")
+    tifFile = exportFolder & "\" & widthStr & "x" & heightStr & unitsLabel & "_" & pageName & "_" & docName & "_Page" & ActivePage.Index & ".tif"
+
+    Dim expTIF As ExportFilter
+    Set expTIF = ActiveDocument.ExportBitmap(tifFile, cdrTIFF, cdrSelection, cdrCMYKColorImage, , , 100, 100, cdrNormalAntiAliasing, False, False, True, False, cdrCompressionLZW)
+    expTIF.Finish
+
+    MsgBox "Selected objects exported as TIFF:" & vbCrLf & tifFile, vbInformation
+End Sub
+
+
+
+Sub Export_Selected_As_JPG_72_dpi()
+    Dim unitChoice As String
+    Dim exportFolder As String
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim widthStr As String, heightStr As String
+    Dim docName As String, pageName As String, jpgFile As String
+
+    ' Check selection
+    If ActiveSelection.Shapes.Count = 0 Then
+        MsgBox "No objects selected!", vbExclamation
+        Exit Sub
+    End If
+
+    ' Ask user: Inches or Feet
+    unitChoice = MsgBox("Export using FEET dimensions? Click No for INCHES.", vbYesNo + vbQuestion, "Select Unit")
+    Dim unitsLabel As String
+    If unitChoice = vbYes Then
+        unitsLabel = "ft"
+    Else
+        unitsLabel = "in"
+    End If
+
+    ' Choose folder
+    exportFolder = CorelScriptTools.GetFolder("Select Folder to Export JPG")
+    If exportFolder = "" Then Exit Sub
+
+    ' Clean document name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    Set sr = ActiveSelectionRange
+    widthIn = sr.SizeWidth
+    heightIn = sr.SizeHeight
+
+    If unitsLabel = "ft" Then
+        widthStr = Round(widthIn / 12, 2)
+        heightStr = Round(heightIn / 12, 2)
+    Else
+        widthStr = Round(widthIn, 2)
+        heightStr = Round(heightIn, 2)
+    End If
+
+    pageName = Replace(ActivePage.Name, " ", "_")
+    jpgFile = exportFolder & "\" & widthStr & "x" & heightStr & unitsLabel & "_" & pageName & "_" & docName & "_Page" & ActivePage.Index & ".jpg"
+
+    Dim expJPG As ExportFilter
+    Set expJPG = ActiveDocument.ExportBitmap(jpgFile, cdrJPEG, cdrSelection, cdrCMYKColorImage, , , 72, 72, cdrNormalAntiAliasing)
+    expJPG.Finish
+
+    MsgBox "Selected objects exported as JPG:" & vbCrLf & jpgFile, vbInformation
+End Sub
+
+
+Sub Export_JPG_All_Pages_36_dpi_RGB()
+    Dim unitChoice As String
+    Dim expJPG As ExportFilter
+    Dim exportFolder As String
+    Dim pg As Page
+    Dim sr As ShapeRange
+    Dim widthIn As Double, heightIn As Double
+    Dim widthStr As String, heightStr As String
+    Dim docName As String, pageName As String, jpgFile As String
+    Dim i As Integer
+    Dim unitsLabel As String
+
+    ' Ask user: Inches or Feet
+    unitChoice = MsgBox("Do you want to export using Feet dimensions?" & vbCrLf & "(Click 'No' for Inches)", vbYesNo + vbQuestion, "Select Unit")
+    If unitChoice = vbYes Then
+        unitsLabel = "ft"
+    Else
+        unitsLabel = "in"
+    End If
+
+    ' Choose folder
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then Exit Sub
+
+    ' Clean doc name
+    docName = ActiveDocument.Name
+    If InStrRev(docName, ".") > 0 Then
+        docName = Left(docName, InStrRev(docName, ".") - 1)
+    End If
+
+    ActiveDocument.ReferencePoint = cdrCenter
+
+    ' Loop all pages
+    For i = 1 To ActiveDocument.Pages.Count
+        Set pg = ActiveDocument.Pages(i)
+        pg.Activate
+
+        pg.Shapes.All.CreateSelection
+        If pg.Shapes.Count = 0 Then GoTo SkipPage
+
+        Set sr = ActiveSelectionRange
+        widthIn = sr.SizeWidth
+        heightIn = sr.SizeHeight
+
+        If unitsLabel = "ft" Then
+            widthStr = Round(widthIn / 12, 2)
+            heightStr = Round(heightIn / 12, 2)
+        Else
+            widthStr = Round(widthIn, 2)
+            heightStr = Round(heightIn, 2)
+        End If
+
+        pageName = Replace(pg.Name, " ", "_") ' Clean page name
+        jpgFile = exportFolder & "\" & widthStr & "x" & heightStr & unitsLabel & "_" & pageName & "_" & docName & "_Page" & i & ".jpg"
+
+        Set expJPG = ActiveDocument.ExportBitmap(jpgFile, cdrJPEG, cdrSelection, cdrRGBColorImage, , , 72, 72, cdrNormalAntiAliasing, False, False, True)
+        expJPG.Finish
+
+SkipPage:
+    Next i
+
+    MsgBox "JPG Export Complete!", vbInformation
+End Sub
