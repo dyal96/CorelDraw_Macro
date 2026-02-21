@@ -1,0 +1,3 @@
+Private Sub lstQueue_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+    btnRemove_Click ' Just triggers the remove button code
+End Sub
