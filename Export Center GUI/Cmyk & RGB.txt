@@ -39,6 +39,10 @@ Private Sub btnRemove_Click()
     RefreshQueueLabels
 End Sub
 
+Private Sub lstQueue_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+    btnRemove_Click ' Just triggers the remove button code
+End Sub
+
 Private Sub btnClearAll_Click()
     If QueueCollection.Count = 0 Then Exit Sub
     If MsgBox("Clear entire queue?", vbYesNo + vbQuestion) = vbYes Then
@@ -167,4 +171,8 @@ Sub RunCorelExport(sr As ShapeRange, folder As String, uLabel As String, idx As 
 ErrorHandler:
     Debug.Print "Error " & Err.Number & " on Item " & idx
     Resume Next
+End Sub
+
+Private Sub UserForm_Click()
+
 End Sub
