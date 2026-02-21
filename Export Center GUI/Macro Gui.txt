@@ -1,0 +1,4 @@
+Sub OpenExportQueue()
+    frmAssetQueue.Show vbModeless ' vbModeless allows you to click the canvas while the panel is open
+End Sub
+

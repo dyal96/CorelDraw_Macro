@@ -1,0 +1,177 @@
+' ==========================================================
+' ASSET EXPORT CENTER - STABLE VERSION
+' ==========================================================
+
+Private StopExport As Boolean
+Dim QueueCollection As New Collection
+
+' --- 1. UTILITY: SANITIZE FILENAME ---
+Function SanitizeName(ByVal txt As String) As String
+    Dim illegal As Variant, i As Integer
+    illegal = Array("/", "\", ":", "*", "?", "<", ">", "|", Chr(34))
+    For i = LBound(illegal) To UBound(illegal)
+        txt = Replace(txt, illegal(i), "_")
+    Next i
+    SanitizeName = txt
+End Function
+
+' --- 2. STOP BUTTON ---
+Private Sub btnStop_Click()
+    StopExport = True
+    MsgBox "Stopping after current item finishes...", vbInformation
+End Sub
+
+' --- 3. QUEUE MANAGEMENT ---
+Private Sub btnAdd_Click()
+    If ActiveSelection.Shapes.Count = 0 Then
+        MsgBox "Please select an object first!", vbExclamation
+        Exit Sub
+    End If
+    ' Store as a range to preserve the objects across pages
+    QueueCollection.Add ActiveSelectionRange
+    lstQueue.AddItem "Item " & QueueCollection.Count & " (" & ActiveSelection.Shapes.Count & " objects)"
+End Sub
+
+Private Sub btnRemove_Click()
+    Dim idx As Integer: idx = lstQueue.ListIndex
+    If idx = -1 Then Exit Sub
+    QueueCollection.Remove idx + 1
+    lstQueue.RemoveItem idx
+    RefreshQueueLabels
+End Sub
+' Double Click to Clear Selected
+Private Sub btnClearAll_Click()
+    If QueueCollection.Count = 0 Then Exit Sub
+    If MsgBox("Clear entire queue?", vbYesNo + vbQuestion) = vbYes Then
+        Set QueueCollection = New Collection
+        lstQueue.Clear
+    End If
+End Sub
+
+Private Sub lstQueue_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+    btnRemove_Click ' Just triggers the remove button code
+End Sub
+
+Private Sub RefreshQueueLabels()
+    Dim i As Integer
+    For i = 0 To lstQueue.ListCount - 1
+        If InStr(lstQueue.List(i), "(") > 0 Then
+             lstQueue.List(i) = "Item " & (i + 1) & " " & Mid(lstQueue.List(i), InStr(lstQueue.List(i), "("))
+        End If
+    Next i
+End Sub
+
+' --- 4. BATCH EXPORT COMMANDS ---
+Private Sub btnExportTIF_Click(): ProcessQueue cdrTIFF, 100, "tif": End Sub
+Private Sub btnExportJPG_Click(): ProcessQueue cdrJPEG, 100, "jpg": End Sub
+
+Private Sub ProcessQueue(fType As cdrFilter, dpi As Long, ext As String)
+    If QueueCollection.Count = 0 Then Exit Sub
+    
+    Dim exportFolder As String, unitsLabel As String
+    Dim unitChoice As VbMsgBoxResult
+    
+    StopExport = False
+    unitChoice = MsgBox("Export using FEET? (No for Inches)", vbYesNo + vbQuestion)
+    unitsLabel = IIf(unitChoice = vbYes, "ft", "in")
+    
+    exportFolder = CorelScriptTools.GetFolder("Select Destination Folder")
+    If exportFolder = "" Then Exit Sub
+
+    Dim i As Integer
+    For i = 1 To QueueCollection.Count
+        DoEvents
+        If StopExport Then Exit For
+        RunCorelExport QueueCollection(i), exportFolder, unitsLabel, i, fType, dpi, ext
+    Next i
+    
+    MsgBox "Batch Process Finished!", vbInformation
+End Sub
+
+' --- 5. QUICK EXPORT COMMANDS (ALL PAGES) ---
+Private Sub btnJPG20_Click(): RunQuickAll cdrJPEG, 20, "jpg": End Sub
+Private Sub btnJPG72_Click(): RunQuickAll cdrJPEG, 72, "jpg": End Sub
+Private Sub btnJPG100_Click(): RunQuickAll cdrJPEG, 100, "jpg": End Sub
+Private Sub btnJPG300_Click(): RunQuickAll cdrJPEG, 300, "jpg": End Sub
+Private Sub btnTIF100_Click(): RunQuickAll cdrTIFF, 100, "tif": End Sub
+Private Sub btnTIF300_Click(): RunQuickAll cdrTIFF, 300, "tif": End Sub
+
+Private Sub RunQuickAll(fType As cdrFilter, dpi As Long, ext As String)
+    Dim exportFolder As String, unitsLabel As String
+    Dim unitChoice As VbMsgBoxResult
+    
+    StopExport = False
+    unitChoice = MsgBox("Export using FEET? (No for Inches)", vbYesNo + vbQuestion)
+    unitsLabel = IIf(unitChoice = vbYes, "ft", "in")
+    
+    exportFolder = CorelScriptTools.GetFolder("Select Export Folder")
+    If exportFolder = "" Then Exit Sub
+
+    Dim i As Integer
+    For i = 1 To ActiveDocument.Pages.Count
+        DoEvents
+        If StopExport Then Exit For
+        
+        ActiveDocument.Pages(i).Activate
+        If ActivePage.Shapes.Count > 0 Then
+            ActivePage.Shapes.All.CreateSelection
+            RunCorelExport ActiveSelectionRange, exportFolder, unitsLabel, i, fType, dpi, ext
+        End If
+    Next i
+    If Not StopExport Then MsgBox "All Pages Exported!", vbInformation
+End Sub
+
+' --- 6. CORE ENGINE ---
+Sub RunCorelExport(sr As ShapeRange, folder As String, uLabel As String, idx As Integer, fType As cdrFilter, dpi As Long, ext As String)
+    On Error GoTo ErrorHandler
+    
+    Dim wIn As Double, hIn As Double
+    Dim wStr As String, hStr As String
+    Dim docName As String, pageName As String, fullPath As String
+    Dim targetPage As Page
+    
+    ' Fix for Error 438: Safer way to find the page
+    If sr.Shapes.Count > 0 Then
+        Set targetPage = sr.Shapes(1).Layer.Page
+        targetPage.Activate
+    Else
+        Exit Sub
+    End If
+    
+    ' Clean naming logic
+    docName = ActiveDocument.Name
+    If InStr(docName, ".") > 0 Then docName = Left(docName, InStrRev(docName, ".") - 1)
+    docName = SanitizeName(docName)
+    pageName = SanitizeName(Replace(targetPage.Name, " ", "_"))
+    
+    ' Dimension logic
+    wIn = sr.SizeWidth: hIn = sr.SizeHeight
+    If uLabel = "ft" Then
+        wStr = Round(wIn / 12, 2): hStr = Round(hIn / 12, 2)
+    Else
+        wStr = Round(wIn, 2): hStr = Round(hIn, 2)
+    End If
+    
+    fullPath = folder & "\" & wStr & "x" & hStr & uLabel & "_" & pageName & "_" & docName & "_Item" & idx & "." & ext
+    
+    ' Final Selection and Export
+    sr.CreateSelection
+    
+    Dim exp As ExportFilter
+    ' We use LZW compression ONLY for TIFF. JPEG uses standard compression.
+    Dim compType As Long
+    compType = IIf(fType = cdrTIFF, cdrCompressionLZW, cdrCompressionNone)
+    
+    Set exp = ActiveDocument.ExportBitmap(fullPath, fType, cdrSelection, cdrCMYKColorImage, 0, 0, dpi, dpi, cdrNormalAntiAliasing, False, False, True, False, compType)
+    exp.Finish
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "Error " & Err.Number & " (" & Err.Description & ") on Item " & idx
+    Resume Next
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
